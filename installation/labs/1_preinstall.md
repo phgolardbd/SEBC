@@ -7,13 +7,20 @@ https://www.cloudera.com/documentation/enterprise/5-12-x/topics/install_cdh_depe
 
 `sudo hostnamectl set-hostname <myname>`
 
-######then set the HOSTNAME in the /etc/sysconfig/network file and then edit your /etc/hosts
+######then set the HOSTNAME in the /etc/sysconfig/network file
+ `sudo nano /etc/sysconfig/network`
+ ```
+ NETWORKING=yes
+ HOSTNAME=lion
+ ```
+ 
+ `sudo nano /etc/hosts` 
 ```aidl
-10.0.151.180  lion
-10.0.149.69 elephant
-10.0.159.156 horse
-10.0.158.220  tiger
-10.0.156.72 monkey
+10.0.151.180  lion.cdh-bootcamp-phg lion
+10.0.149.69   elephant.cdh-bootcamp-phg elephant
+10.0.159.156  horse.cdh-bootcamp-phg horse
+10.0.158.220  tiger.cdh-bootcamp-phg tiger
+10.0.156.72   monkey.cdh-bootcamp-phg monkey
 ```
 
 ######check with 
@@ -47,11 +54,18 @@ https://www.cloudera.com/documentation/enterprise/5-12-x/topics/install_cdh_depe
 
 
 
-####5 - check the vm swappiness on all you nodes
+####5 - check the vm swappiness on all you nodes and set it to 1
 
 `cat /proc/sys/vm/swappiness`
-######here : 30
+###### change swappiness at runtime
 `sudo sysctl -w vm.swappiness=1`
+######to make it permananet
+
+`sudo nano /etc/sysctl.conf`
+```aidl
+vm.swappiness=1
+```
+
 
 ####6 - Show the mount attributes of your volume(s)
 #######If you have ext-based volumes, list the reserve space setting mounting the 1TB additionnal (on 5 hosts) to the `data`
@@ -78,11 +92,27 @@ tmpfs           1,6G     0  1,6G   0% /run/user/1001
 ```
 
 #####7 - Disable transparent hugepage support
-
+######runtime
 ` cd /sys/kernel/mm/transparent_hugepage`
 `cat defrag`
 `echo never > defrag`
 
+`echo never > /sys/kernel/mm/transparent_hugepage/defrag`
+`echo never > /sys/kernel/mm/transparent_hugepage/enabled`
+#####permanent
+
+`sudo nano /etc/rc.d/rc.local`
+```
+
+echo never > /sys/kernel/mm/transparent_hugepage/defrag
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+```
+`sudo chmod +x /etc/rc.d/rc.local`
+`sudo nano /boot/grub/grub.conf`
+```aidl
+transparent_hugepage=never
+```
+`sudo grub2-mkconfig -o /boot/grub2/grub.cfg`
 
 ####8 - List your network interface configuration
 
@@ -242,31 +272,43 @@ sudo tar zxvf jdk-8u152-linux-x64.tar.gz
 sudo cp /opt/jdk1.8.0_152 -R /usr/java
 
 
-sudo alternatives --install /usr/bin/java java  /usr/java/jdk1.8.0_152/bin/java 1000
-sudo alternatives --install /usr/bin/javac javac  /usr/java/jdk1.8.0_152/bin/javac 1000
+sudo alternatives --install /usr/bin/java java  /usr/java/bin/java 1000
+sudo alternatives --install /usr/bin/javac javac  /usr/java/bin/javac 1000
 
 sudo alternatives --set jar /opt/jdk1.8.0_152/bin/jar
 sudo alternatives --set javac /opt/jdk1.8.0_152/bin/javac
 ```
 ###### export java_home and jre_home
-`sudo nano /etc/environment`
+`sudo nano /etc/default/cloudera-scm-server`
 ```aidl
 export JAVA_HOME=/opt/jdk1.8.0_152
 export JRE_HOME=/opt/jdk1.8.0_152/jre
 ```
 
-###### modif 
-nano .bash_profile
+###### modif the path variable value
 
-
-# .bash_profile
-
-# Get the aliases and functions
-if [ -f ~/.bashrc ]; then
-        . ~/.bashrc
-fi
-
-# User specific environment and startup programs
-
+`nano .bash_profile`
+```aidl
+....
 PATH=$PATH:$HOME/.local/bin:$HOME/bin:$JAVA_HOME/bin:$JRE_HOME
 export PATH
+```
+####15 - set up CM server
+```
+https://archive.cloudera.com/cm5/redhat/7/x86_64/cm/cloudera-manager.repo
+```
+`sudo nano /etc/yum.repos.d/cloudera-manager.repo`
+```aidl
+[cloudera-manager]
+# Packages for Cloudera Manager, Version 5, on RedHat or CentOS 7 x86_64           	  
+name=Cloudera Manager
+baseurl=https://archive.cloudera.com/cm5/redhat/7/x86_64/cm/5.9/
+gpgkey =https://archive.cloudera.com/cm5/redhat/7/x86_64/cm/RPM-GPG-KEY-cloudera    
+gpgcheck = 1
+```
+
+`sudo yum install cloudera-manager-daemons cloudera-manager-server`
+
+######cloudera manager start on boot
+`sudo chkconfig cloudera-scm-server on`
+
