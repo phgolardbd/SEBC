@@ -29,16 +29,16 @@ https://www.cloudera.com/documentation/enterprise/5-12-x/topics/install_cdh_depe
  `sudo nano /etc/sysconfig/network`
  ```
  NETWORKING=yes
- HOSTNAME=lion
+ HOSTNAME=lion.cdh-bootcamp-phg
  ```
  
  `sudo nano /etc/hosts` 
 ```aidl
-10.0.151.180  lion.cdh-bootcamp-phg lion
-10.0.149.69   elephant.cdh-bootcamp-phg elephant
-10.0.159.156  horse.cdh-bootcamp-phg horse
-10.0.158.220  tiger.cdh-bootcamp-phg tiger
-10.0.156.72   monkey.cdh-bootcamp-phg monkey
+10.3.9.4  lion.cdh-bootcamp-phg lion
+10.3.9.5  elephant.cdh-bootcamp-phg elephant
+10.3.9.6  horse.cdh-bootcamp-phg horse
+10.3.9.8  tiger.cdh-bootcamp-phg tiger
+10.3.9.8  monkey.cdh-bootcamp-phg monkey
 ```
 
 ######check with 
@@ -58,9 +58,19 @@ https://www.cloudera.com/documentation/enterprise/5-12-x/topics/install_cdh_depe
   
   `systemctl stop firewalld`
   
-  `systemctl disable iptables`
-  
-  `systemctl disable firewalld`
+```aidl
+systemctl stop firewalld
+systemctl disable firewalld
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t nat -X
+iptables -t mangle -F
+iptables -t mangle -X
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+```
 
 ######see documentation for point 1 to ?? on https://www.cloudera.com/documentation/enterprise/5-12-x/topics/cdh_admin_performance.html
 
