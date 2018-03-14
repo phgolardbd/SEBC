@@ -3,6 +3,13 @@
 see documentation for point 1 to 4 on (bear in mind that the section is "CDH install using command line but this applies to every kind of installation)
 https://www.cloudera.com/documentation/enterprise/5-12-x/topics/install_cdh_dependencies.html
 
+ssh-keygen
+ssh-copy-id -i ~/.ssh/id_rsa.pub lion
+ssh-copy-id -i ~/.ssh/id_rsa.pub elephant
+ssh-copy-id -i ~/.ssh/id_rsa.pub horse
+ssh-copy-id -i ~/.ssh/id_rsa.pub tiger
+ssh-copy-id -i ~/.ssh/id_rsa.pub monkey
+
 ####1 - passwordless sudo for admin account
 `sudo nano /etc/sudoers.d/waagent`
   
@@ -37,7 +44,7 @@ https://www.cloudera.com/documentation/enterprise/5-12-x/topics/install_cdh_depe
 10.3.9.4  lion.cdh-bootcamp-phg lion
 10.3.9.5  elephant.cdh-bootcamp-phg elephant
 10.3.9.6  horse.cdh-bootcamp-phg horse
-10.3.9.8  tiger.cdh-bootcamp-phg tiger
+10.3.9.7  tiger.cdh-bootcamp-phg tiger
 10.3.9.8  monkey.cdh-bootcamp-phg monkey
 ```
 
@@ -59,6 +66,7 @@ https://www.cloudera.com/documentation/enterprise/5-12-x/topics/install_cdh_depe
   `systemctl stop firewalld`
   
 ```aidl
+sudo su -
 systemctl stop firewalld
 systemctl disable firewalld
 iptables -F
@@ -74,6 +82,7 @@ iptables -P OUTPUT ACCEPT
 
 ######see documentation for point 1 to ?? on https://www.cloudera.com/documentation/enterprise/5-12-x/topics/cdh_admin_performance.html
 
+######FAILED to do that
 ####4 - Disable the tuned Service
 
 `systemctl start tuned`
@@ -86,7 +95,9 @@ iptables -P OUTPUT ACCEPT
 
 `cat /proc/sys/vm/swappiness`
 ###### change swappiness at runtime
+
 `sudo sysctl -w vm.swappiness=1`
+
 ######to make it permananet
 
 `sudo nano /etc/sysctl.conf`
@@ -98,7 +109,7 @@ vm.swappiness=1
 ####6 - Show the mount attributes of your volume(s)
 #######If you have ext-based volumes, list the reserve space setting mounting the 1TB additionnal (on 5 hosts) to the `data`
 
-#######find the name of this new disk 
+#######find the name of this new disk OUTADTED (AWS) 
 
 `lsblk`
 #######copy it
@@ -121,8 +132,8 @@ tmpfs           1,6G     0  1,6G   0% /run/user/1001
 
 #####7 - Disable transparent hugepage support
 ######runtime
-` cd /sys/kernel/mm/transparent_hugepage`
-`cat defrag`
+`cat /sys/kernel/mm/transparent_hugepage/defrag`
+
 `echo never > defrag`
 
 `echo never > /sys/kernel/mm/transparent_hugepage/defrag`
@@ -285,6 +296,8 @@ GRANT ALL on hue.* TO 'hueuser'@'%' IDENTIFIED BY 'password';
 GRANT ALL on oozie.* TO 'oozieuser'@'%' IDENTIFIED BY 'password';
 ```
 
+
+`mysql -uroot -proot < /home/phadmin/script/create_db.sql`
 ####13 - set up jdbc driver
 
 `cd /tmp/`
@@ -296,21 +309,35 @@ GRANT ALL on oozie.* TO 'oozieuser'@'%' IDENTIFIED BY 'password';
 ####### set up java alternatives
 
 ```aidl
+cd /tmp/
+wget http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.tar.gz --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie"
+tar zxvf jdk-8u161-linux-x64.tar.gz
+
+```
+
+```aidl
 sudo tar zxvf jdk-8u152-linux-x64.tar.gz
-sudo cp /opt/jdk1.8.0_152 -R /usr/java
+sudo cp -R /tmp/jdk1.8.0_161  /usr/java
 
 
-sudo alternatives --install /usr/bin/java java  /usr/java/bin/java 1000
-sudo alternatives --install /usr/bin/javac javac  /usr/java/bin/javac 1000
 
-sudo alternatives --set jar /opt/jdk1.8.0_152/bin/jar
-sudo alternatives --set javac /opt/jdk1.8.0_152/bin/javac
+sudo alternatives --install /usr/bin/java java  /usr/java/jdk1.8.0_161/bin/java 1000
+sudo alternatives --install /usr/bin/javac javac  /usr/java/jdk1.8.0_161/bin/javac 1000
+
+sudo alternatives --set jar /usr/java/jdk1.8.0_161/bin/jar
+sudo alternatives --set javac /usr/java/jdk1.8.0_152/bin/javac
 ```
 ###### export java_home and jre_home
+`sudo nano /etc/environment`
+export JAVA_HOME=/usr/java/jdk1.8.0_161
+export JRE_HOME=/usr/java/jdk1.8.0_161/jre
+
+####### attention do that after setup (in case of issue with java)
 `sudo nano /etc/default/cloudera-scm-server`
+
 ```aidl
-export JAVA_HOME=/opt/jdk1.8.0_152
-export JRE_HOME=/opt/jdk1.8.0_152/jre
+export JAVA_HOME=/usr/java/jdk1.8.0_161
+export JRE_HOME=/usr/java/jdk1.8.0_161/jre
 ```
 
 ###### modif the path variable value
@@ -318,6 +345,8 @@ export JRE_HOME=/opt/jdk1.8.0_152/jre
 `nano .bash_profile`
 ```aidl
 ....
+export JAVA_HOME=/usr/java/jdk1.8.0_161
+export JRE_HOME=/usr/java/jdk1.8.0_161/jre
 PATH=$PATH:$HOME/.local/bin:$HOME/bin:$JAVA_HOME/bin:$JRE_HOME
 export PATH
 ```
@@ -340,3 +369,48 @@ gpgcheck = 1
 ######cloudera manager start on boot
 `sudo chkconfig cloudera-scm-server on`
 
+#####prepare databases for cmserver
+`sudo /usr/share/cmf/schema/scm_prepare_database.sh mysql cmserver cmserveruser password`
+`sudo service cloudera-scm-server on`
+
+#####question
+I had a heap size issue when I tried to start the cloudera-scm-server service
+
+
+/etc/init.d/cloudera-scm-server: line 292: [[: [error] JVM PermGen is set less than 256m, CM server may run out of PermGen space. Update CMF_JAVA_OPTS in /etc/default/cloudera-scm-server to fix this.: syntax error: operand expected (error token is "[error] JVM PermGen is set less than 256m, CM server may run out of PermGen space. Update CMF_JAVA_OPTS in /etc/default/cloudera-scm-server to fix this.")
+
+so I had to modify the file /etc/default/cloudera-scm-server
+
+```aidl
+#
+# Specify any command line arguments for the Cloudera SCM Server here.
+#
+
+CMF_SERVER_ARGS=""
+
+#
+# Locate the JDBC driver jar file.
+#
+# The default value is the default system mysql driver on RHEL/CentOS/Ubuntu
+# and the standard, documented location for where to put the oracle jar in CM
+# deployments.
+#
+
+export CMF_JDBC_DRIVER_JAR="/usr/share/java/mysql-connector-java.jar:/usr/share/java/oracle-connector-java.jar"
+
+#
+# Java Options.
+#
+# Default value sets Java maximum heap size to 2GB, and Java maximum permanent
+# generation size to 256MB.
+#
+
+export CMF_JAVA_OPTS="-Xmx2G -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp"
+export JAVA_HOME=/usr/java/jdk1.8.0_161
+export JRE_HOME=/usr/java/jdk1.8.0_161
+```
+
+
+
+
+ssh -L 7180:localhost:7180 phadmin@52.169.236.34

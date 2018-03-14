@@ -17,7 +17,8 @@
 
 ## <center> <a name="security_review">Quick basics overview</a>
 
-* **Perimeter**
+* **Perimeter** (locking your cluster from outside)
+export HADOOP-USER-NAME=hdfs 
     * Strong authentication
     * Network isolation, edge nodes
     * Firewalls, iptables
