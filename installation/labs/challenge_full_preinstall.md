@@ -73,11 +73,11 @@ HOSTNAME=monkey.cdh-bootcamp-phg
  `sudo nano /etc/hosts` 
  
 ```aidl
-10.3.9.4  lion.cdh-bootcamp-phg lion
-10.3.9.5  elephant.cdh-bootcamp-phg elephant
-10.3.9.6  horse.cdh-bootcamp-phg horse
-10.3.9.7  tiger.cdh-bootcamp-phg tiger
-10.3.9.8  monkey.cdh-bootcamp-phg monkey
+10.3.4.4  lion.cdh-bootcamp-phg lion
+10.3.4.5  elephant.cdh-bootcamp-phg elephant
+10.3.4.6  horse.cdh-bootcamp-phg horse
+10.3.4.7  tiger.cdh-bootcamp-phg tiger
+10.3.4.8  monkey.cdh-bootcamp-phg monkey
 ```
 
 ######check with 
