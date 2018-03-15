@@ -17,26 +17,61 @@ https://www.cloudera.com/documentation/enterprise/5-12-x/topics/install_cdh_depe
 `
 
 ####2 - add epel
-`cd /tmp`
-`wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm`
-`sudo yum install epel-release-latest-7.noarch.rpm`
+
+```aidl
+cd /tmp
+wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+sudo yum install epel-release-latest-7.noarch.rpm
+```
 
 ####3 - update yum
+
 `sudo yum update`
 
 
 ####1 - FQDN
 
-`sudo hostnamectl set-hostname <myname>`
+`sudo hostnamectl set-hostname lion.cdh-bootcamp-phg`
+
+`sudo hostnamectl set-hostname elephant.cdh-bootcamp-phg`
+
+`sudo hostnamectl set-hostname horse.cdh-bootcamp-phg`
+
+`sudo hostnamectl set-hostname tiger.cdh-bootcamp-phg`
+
+`sudo hostnamectl set-hostname monkey.cdh-bootcamp-phg`
+
 
 ######then set the HOSTNAME in the /etc/sysconfig/network file
  `sudo nano /etc/sysconfig/network`
+ 
  ```
  NETWORKING=yes
  HOSTNAME=lion.cdh-bootcamp-phg
  ```
  
+ ```
+NETWORKING=yes
+HOSTNAME=elephant.cdh-bootcamp-phg
+  ```
+  
+```
+NETWORKING=yes
+HOSTNAME=horse.cdh-bootcamp-phg
+```
+   
+```
+NETWORKING=yes
+HOSTNAME=tiger.cdh-bootcamp-phg
+```
+    
+```
+NETWORKING=yes
+HOSTNAME=monkey.cdh-bootcamp-phg
+```
+ 
  `sudo nano /etc/hosts` 
+ 
 ```aidl
 10.3.9.4  lion.cdh-bootcamp-phg lion
 10.3.9.5  elephant.cdh-bootcamp-phg elephant
@@ -46,6 +81,7 @@ https://www.cloudera.com/documentation/enterprise/5-12-x/topics/install_cdh_depe
 ```
 
 ######check with 
+
 `uname -a`
 
 ```aidl
@@ -145,6 +181,7 @@ tmpfs           1,6G     0  1,6G   0% /run/user/1001
 
 `echo never > /sys/kernel/mm/transparent_hugepage/defrag`
 `echo never > /sys/kernel/mm/transparent_hugepage/enabled`
+
 #####permanent
 
 `sudo nano /etc/rc.d/rc.local`
@@ -190,11 +227,11 @@ transparent_hugepage=never
 ```
 127.0.0.1       localhost localhost.localdomain localhost4 localhost4.localdomain4
 127.0.0.1       localhost localhost.localdomain localhost6 localhost6.localdomain6
-10.0.151.180    lion
-10.0.149.69     elephant
-10.0.159.156    horse
-10.0.158.220    tiger
-10.0.156.72     monkey
+10.3.9.4    lion
+10.3.9.5     elephant
+10.3.9.6    horse
+10.3.9.7    tiger
+10.3.9.8    monkey
 ```
 
 ####10 - ntp
@@ -202,10 +239,15 @@ transparent_hugepage=never
 #######ntpd => process point to common time serveers. important since we work with distributed systems so they need to have the semae time crucial for kerberos as it uses ticket with a certain validity so it needs time synchronisation
 
 `sudo yum install ntp`
+
 `sudo service ntpd start`
-`sudo chkconfig ntpd on` to start @ boot
+
+`sudo chkconfig ntpd on` 
+
+to start @ boot
 
 `ntpstat` 
+
 #########to check if it synchronized to a ntp server
 
 ######FYI `sudo nano /etc/ntp.conf` you can see a list of ntp servers available
@@ -216,10 +258,15 @@ transparent_hugepage=never
 #######nscd => caching service (users groups, dns entries... useful for perfromances due to cache...) 
 
 `sudo yum install nscd`
-`sudo service nscd start`
-`sudo chkconfig nscd on` to start @ boot
 
-`sudo service nscd status` to check if it nscd is running
+`sudo service nscd start`
+
+`sudo chkconfig nscd on` 
+
+to start @ boot
+
+`sudo service nscd status` 
+to check if it nscd is running
 
 
 #####12 - MariaDB - only on the CM server node
@@ -234,13 +281,17 @@ gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 ```
 #####then run
+
 `sudo yum install MariaDB-server MariaDB-client`
 
 #####stop mariadb service (to then config mariadb)
+
 `sudo service mariadb stop`
+
 #####modify the /etc/my.cnf file to align with cloudera recommendations
 
 `sudo nano /etc/my.cnf`
+
 ```aidl
 [mysqld]
 transaction-isolation = READ-COMMITTED
@@ -278,14 +329,21 @@ innodb_log_file_size = 512M
 log-error=/var/log/mariadb/mariadb.log
 pid-file=/var/run/mariadb/mariadb.pid
 ```
+
 ######enable mariadb @ boot
+
 `sudo systemctl enable mariadb`
+
 ######check if enabled
+
 `sudo systemctl list-unit-files | grep mariadb`
+
 ######set the root password for MariaDB (mine is)
+
 `sudo /usr/bin/mysql_secure_installation`
 
 #####script sql to create the dbs
+
 `sudo nano /home/phadmin/script/create_db.sql`
 
 ```aidl
@@ -312,7 +370,16 @@ GRANT ALL on oozie.* TO 'oozieuser'@'%' IDENTIFIED BY 'password';
 
 
 `mysql -uroot -proot < /home/phadmin/script/create_db.sql`
+
 ####13 - set up jdbc driver
+
+```aidl
+cd /tmp/
+wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.40.tar.gz
+tar zxvf mysql-connector-java-5.1.40.tar.gz
+sudo mkdir -p /usr/share/java/
+sudo cp mysql-connector-java-5.1.40/mysql-connector-java-5.1.40-bin.jar /usr/share/java/mysql-connector-java.jar
+```
 
 `cd /tmp/`
 `wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.40.tar.gz`
@@ -330,6 +397,7 @@ tar zxvf jdk-8u161-linux-x64.tar.gz
 ```
 
 ```aidl
+
 sudo tar zxvf jdk-8u152-linux-x64.tar.gz
 sudo cp -R /tmp/jdk1.8.0_161  /usr/java
 
@@ -342,11 +410,14 @@ sudo alternatives --set jar /usr/java/jdk1.8.0_161/bin/jar
 sudo alternatives --set javac /usr/java/jdk1.8.0_152/bin/javac
 ```
 ###### export java_home and jre_home
+
 `sudo nano /etc/environment`
+
 export JAVA_HOME=/usr/java/jdk1.8.0_161
 export JRE_HOME=/usr/java/jdk1.8.0_161/jre
 
 ####### attention do that after setup (in case of issue with java)
+
 `sudo nano /etc/default/cloudera-scm-server`
 
 ```aidl
@@ -365,10 +436,13 @@ PATH=$PATH:$HOME/.local/bin:$HOME/bin:$JAVA_HOME/bin:$JRE_HOME
 export PATH
 ```
 ####15 - set up CM server
+
 ```
 https://archive.cloudera.com/cm5/redhat/7/x86_64/cm/cloudera-manager.repo
 ```
+
 `sudo nano /etc/yum.repos.d/cloudera-manager.repo`
+
 ```aidl
 [cloudera-manager]
 # Packages for Cloudera Manager, Version 5, on RedHat or CentOS 7 x86_64           	  
