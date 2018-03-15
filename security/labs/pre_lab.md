@@ -190,6 +190,7 @@ but most of the steps have been executed at this stage so just install the
 cluster name < Actions
 
 ######12.2Enable Kerberos
+
 KDC Information (page on the HUI - please fill in with appropriate info according to what you filled in the previous steps
 <p align="center">
   <img src="KDC_INFO.png" width="350"/>
@@ -201,24 +202,31 @@ KDC Information (page on the HUI - please fill in with appropriate info accordin
 - kdc admin server host : lion.cdh-bootcamp-phg
 - domain cdh-bootcamp-phg
 - encryption type (see the value in your klist)
+
 ######12.3KRB5 Configuration
+
 do not let overwrite the krb5.conf file if you've deployed it on your cluster (I did do it so make sure the check box is unchecked)
+
 ######12.4Enable Kerberos for cluster phgolardbd
 
 uname cloudera-scm@CDH.BOOTCAMP.PHG
 pword admin
 
 ######12.5 Kerberos Principal
+
 Specify the Kerberos principal used by each service in the cluster. Additional steps may be required if you decide to change these principals from their default values. Please read the documentation about custom principals before making changes on this page.
 
 go ahead with the users the wizard will propose you by default for all the service as all principals are also the unix users of those services
 
 #####13 Create the HDFS Superuser
+
 To be able to create home directories for users, you will need access to the HDFS superuser account. (CDH automatically created the HDFS superuser account on each cluster host during CDH installation.) When you enabled Kerberos for the HDFS service, you lost access to the default HDFS superuser account using sudo -u hdfs commands. Cloudera recommends you use a different user account as the superuser, not the default hdfs account.
 
 ######13.1Designating a Non-Default Superuser Group
+
 To designate a different group of superusers instead of using the default hdfs account, follow these steps:
 ATTENTION the group has to exist as a UNIX group !!!
+
 ```aidl
 Go to the Cloudera Manager Admin Console and navigate to the HDFS service.
 Click the Configuration tab.
@@ -281,6 +289,7 @@ password
 ```
 
 ######15 testing the kinit with your users
+
 go to a terminal
 do a kinit phgolardbd
 type your password
@@ -447,6 +456,7 @@ please also note that elephant.cdh-bootcamp-phg is the fully qualified domain na
 
 
 !connect jdbc:hive2://localhost:10000/default;principal=hive/fdqn@REALM.COM
+
 Replace fqdn with your host's fully-qualified domain name
 Use your Linux account/password to authenticate when prompted
 Enter SHOW TABLES;
@@ -454,10 +464,13 @@ The statement should return an empty set because no authorizations are in place
 Copy the transcript of this section to security/labs/sentry-test.md
 Create a Sentry role with full authorization
 In beeline:
+```aidl
 CREATE ROLE sentry_admin;
 GRANT ALL ON SERVER server1 TO ROLE sentry_admin;
 GRANT ROLE sentry_admin TO GROUP {your_primary};
 SHOW TABLES;
+```
+
 The statement should now return all tables
 Create additional test users
 Add new users to all cluster nodes
@@ -485,3 +498,29 @@ Repeat the process as ferdinand
 ferdinand should see sample_07
 Add the transcripts of these sessions to security/labs/sentry-test.md
 © 2018 GitHub, Inc.
+
+##### Note on sentry admin
+in CM > sentry > admin groups 
+put the group you want to be admin (phgolardbd here) to have access with users of that group to the security, metasore tab in hue
+
+in Hue -> manage users
+create users and attach them to their appropriate groups
+(you can bin it to AD, it is possible)
+
+
+see the file SENTRY_POTENTIAL_HDFS_ACL_SOLUTION.png file in tuto folder
+##### Note on kerberos architecture with hue/oozie
+in CM
+HDFS > configuration
+
+hadoop.proxyuser.hue/oozie.hosts
+value: *
+means that oozie/hue users can impersonate any groups from any hosts (where oozie/hue is installed)
+(disable hive impersonation with hiveserver property
+Uncheck the HiveServer2 Enable Impersonation checkbox.)
+
+see
+KDC Information (page on the HUI - please fill in with appropriate info according to what you filled in the previous steps
+<p align="center">
+  <img src="kerberos_hue_archit.jpg" width="650"/>
+</p>
