@@ -1,6 +1,8 @@
 
 Rest call to get the deployment (with port forwarding)
 
+`for documentation on the api see on Cm support < api documentation`
+
 <code> curl -u admin:admin 'http://localhost:7180/api/v2/cm/deployment'</code>
 
 Results

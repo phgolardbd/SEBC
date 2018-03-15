@@ -1,4 +1,6 @@
 ####upgrade CM
+
+`https://www.cloudera.com/documentation/enterprise/latest/topics/cm_ag_ug_cm5.html#concept_gs4_bsg_xw__CM-agent`
 #####version
 `curl -u admin:admin 'http://localhost:7180/api/version' 
 ```aidl
