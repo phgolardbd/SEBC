@@ -395,13 +395,26 @@ pid-file=/var/run/mariadb/mariadb.pid
 
 #####script sql to create the dbs
 
-`sudo nano mkdir -p script`
+`sudo mkdir -p script`
 
 
 
 `sudo nano /home/phadmin/script/create_db.sql`
 
 ```aidl
+CREATE DATABASE scm DEFAULT CHARACTER SET utf8;
+CREATE DATABASE rman DEFAULT CHARACTER SET utf8;
+CREATE DATABASE hive DEFAULT CHARACTER SET utf8;
+CREATE DATABASE hue DEFAULT CHARACTER SET utf8;
+CREATE DATABASE oozie DEFAULT CHARACTER SET utf8;
+
+GRANT ALL on scm.* TO 'scmuser'@'%' IDENTIFIED BY 'password';
+GRANT ALL on rman.* TO 'rmanuser'@'%' IDENTIFIED BY 'password';
+GRANT ALL on hive.* TO 'hiveuser'@'%' IDENTIFIED BY 'password';
+GRANT ALL on hue.* TO 'hueuser'@'%' IDENTIFIED BY 'password';
+GRANT ALL on oozie.* TO 'oozieuser'@'%' IDENTIFIED BY 'password';
+```
+
 CREATE DATABASE cmserver DEFAULT CHARACTER SET utf8;
 CREATE DATABASE rman DEFAULT CHARACTER SET utf8;
 CREATE DATABASE metastore DEFAULT CHARACTER SET utf8;
@@ -421,8 +434,6 @@ GRANT ALL on nav.* TO 'navuser'@'%' IDENTIFIED BY 'password';
 GRANT ALL on navms.* TO 'navmsuser'@'%' IDENTIFIED BY 'password';
 GRANT ALL on hue.* TO 'hueuser'@'%' IDENTIFIED BY 'password';
 GRANT ALL on oozie.* TO 'oozieuser'@'%' IDENTIFIED BY 'password';
-```
-
 
 `mysql -uroot -proot < /home/phadmin/script/create_db.sql`
 
