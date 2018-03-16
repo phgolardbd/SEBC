@@ -16,7 +16,7 @@ pierre-henri.golard@businessdecision.be -p SW6%phg%
 52.166.121.212  tiger.cdh-bootcamp-phg tiger
 52.166.72.211  monkey.cdh-bootcamp-phg monkey
 
-ssh -L 7180:localhost:7180 phadmin@52.174.244.89
+ssh -L 7180:localhost:7180 phadmin@52.232.44.86
 
 admin account
 phadmin -p Ertyertyerty1
