@@ -172,25 +172,34 @@ tmpfs           1,6G     0  1,6G   0% /run/user/1001
 /dev/nvme1n1    985G   77M  935G   1% /data
 ```
 
+#####6 - disable tuned
+
+`sudo systemctl stop tuned`
+`sudo systemctl disable tuned`
+
+
 #####7 - Disable transparent hugepage support
+
+
+
 ######runtime
 
 `cat /sys/kernel/mm/transparent_hugepage/defrag`
 
-`echo never > defrag`
-
 `echo never > /sys/kernel/mm/transparent_hugepage/defrag`
+
 `echo never > /sys/kernel/mm/transparent_hugepage/enabled`
 
 #####permanent
 
 `sudo nano /etc/rc.d/rc.local`
 ```
-
 echo never > /sys/kernel/mm/transparent_hugepage/defrag
 echo never > /sys/kernel/mm/transparent_hugepage/enabled
 ```
 `sudo chmod +x /etc/rc.d/rc.local`
+
+`sudo mkdir -p /boot/grub/`
 
 `sudo nano /boot/grub/grub.conf`
 
@@ -200,6 +209,46 @@ transparent_hugepage=never
 
 `sudo grub2-mkconfig -o /boot/grub2/grub.cfg`
 
+If it doesn't work
+
+`sudo nano /etc/init.d/disable-transparent-hugepages`
+
+```aidl
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          disable-transparent-hugepages
+# Required-Start:    $local_fs
+# Required-Stop:
+# X-Start-Before:    mongod mongodb-mms-automation-agent
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Disable Linux transparent huge pages
+# Description:       Disable Linux transparent huge pages, to improve
+#                    database performance.
+### END INIT INFO
+
+case $1 in
+  start)
+    if [ -d /sys/kernel/mm/transparent_hugepage ]; then
+      thp_path=/sys/kernel/mm/transparent_hugepage
+    elif [ -d /sys/kernel/mm/redhat_transparent_hugepage ]; then
+      thp_path=/sys/kernel/mm/redhat_transparent_hugepage
+    else
+      return 0
+    fi
+
+    echo 'never' > ${thp_path}/enabled
+    echo 'never' > ${thp_path}/defrag
+
+    unset thp_path
+    ;;
+esac
+```
+```aidl
+sudo chmod 755 /etc/init.d/disable-transparent-hugepages
+
+sudo chkconfig --add disable-transparent-hugepages
+```
 
 ####8 - List your network interface configuration
 
@@ -238,7 +287,7 @@ transparent_hugepage=never
 
 #######ntpd => process point to common time serveers. important since we work with distributed systems so they need to have the semae time crucial for kerberos as it uses ticket with a certain validity so it needs time synchronisation
 
-`sudo yum install ntp`
+`sudo yum install -y ntp`
 
 `sudo service ntpd start`
 
@@ -257,7 +306,7 @@ to start @ boot
 
 #######nscd => caching service (users groups, dns entries... useful for perfromances due to cache...) 
 
-`sudo yum install nscd`
+`sudo yum install -y nscd`
 
 `sudo service nscd start`
 
@@ -340,9 +389,15 @@ pid-file=/var/run/mariadb/mariadb.pid
 
 ######set the root password for MariaDB (mine is)
 
+`sudo service mariadb start`
+
 `sudo /usr/bin/mysql_secure_installation`
 
 #####script sql to create the dbs
+
+`sudo nano mkdir -p script`
+
+
 
 `sudo nano /home/phadmin/script/create_db.sql`
 
@@ -393,6 +448,12 @@ sudo cp mysql-connector-java-5.1.40/mysql-connector-java-5.1.40-bin.jar /usr/sha
 cd /tmp/
 wget http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.tar.gz --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie"
 tar zxvf jdk-8u161-linux-x64.tar.gz
+sudo mkdir -p /usr/java
+sudo cp -R /tmp/jdk1.8.0_161  /usr/java
+
+sudo alternatives --install /usr/bin/java java  /usr/java/jdk1.8.0_161/bin/java 1000
+sudo alternatives --install /usr/bin/javac javac  /usr/java/jdk1.8.0_161/bin/javac 1000
+
 
 ```
 
@@ -415,6 +476,22 @@ sudo alternatives --set javac /usr/java/jdk1.8.0_152/bin/javac
 
 export JAVA_HOME=/usr/java/jdk1.8.0_161
 export JRE_HOME=/usr/java/jdk1.8.0_161/jre
+
+`sudo nano ~/.bash_profile`
+
+```aidl
+PATH=$PATH:$HOME/.local/bin:$HOME/bin:$JAVA_HOME/bin:$JRE_HOME
+export PATH
+```
+
+```aidl
+sudo su
+nano ~/.bash_profilee
+```
+```aidl
+PATH=$PATH:$HOME/.local/bin:$HOME/bin:$JAVA_HOME/bin:$JRE_HOME
+export PATH
+```
 
 ####### attention do that after setup (in case of issue with java)
 
