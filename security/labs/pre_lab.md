@@ -67,7 +67,7 @@ Server:
  kdc_tcp_ports = 88
 
 [realms]
-  CDH.BOOTCAMP.PHG = {
+  PHGOLARDBD.NL = {
   #master_key_type = aes256-cts
   acl_file = /var/kerberos/krb5kdc/kadm5.acl
   dict_file = /usr/share/dict/words

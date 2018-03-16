@@ -37,7 +37,7 @@ Swap:          2047           0        2047
 ```
 
 
-####linux version of the first node (elephant)
+####linux version
 
 ```aidl
 [phadmin@elephant ~]$ cat /etc/*-release
@@ -146,7 +146,7 @@ hilary:x:2800:1002::/home/hilary:/bin/bash
 anupam:x:2900:1001::/home/anupam:/bin/bash
 ```
 
-### /etc/group for hilary and anupam
+### /etc/group
 ````aidl
 analytics:x:1001:
 datasci:x:1002:
